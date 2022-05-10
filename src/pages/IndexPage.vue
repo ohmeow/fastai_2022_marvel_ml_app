@@ -212,10 +212,10 @@ const predict = async () => {
         for (const pred of res["data"][0]["confidences"]) {
           itemResults["marvel_character_probs"].push({ label: pred["label"], prob: pred["confidence"] });
         }
-
-        console.log(itemResults);
-        predictionResults.value.push(itemResults);
       }
+
+      // console.log(itemResults);
+      predictionResults.value.push(itemResults);
     } catch (err) {
       $q.notify({ type: "negative", message: err.message || "Could not get prediction" });
     }

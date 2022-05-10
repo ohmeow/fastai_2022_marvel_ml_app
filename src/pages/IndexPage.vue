@@ -77,20 +77,22 @@
       </div>
 
       <!-- results -->
-      <div v-if="predictionResults.length > 0" class="q-pa-md">
+      <div v-if="predictionResults.length > 0" class="q-pa-xs">
         <div v-for="pred in predictionResults" :key="pred" class="row">
           <!-- prob-->
           <div class="col-12">
             <div class="col-12 text-h5 text-center">
               <div>Probability of Marvel ancestry</div>
-              <div class="text-weight-bolder text-primary">{{ pred.is_marvel_character_prob }}%</div>
+              <div class="text-weight-bolder text-primary">{{ pred.is_marvel_character_prob }}</div>
             </div>
           </div>
           <!-- characters -->
           <div v-if="pred.marvel_character_probs.length > 0" class="col-12 q-pt-md">
             <div class="text-h5 text-center">Character Makeup</div>
             <div v-for="characterPred in pred.marvel_character_probs" :key="characterPred" class="row items-center q-pt-xs">
-              <div class="col-2 text-h6 text-center">{{ characterPred.label }}</div>
+              <div class="col-2 text-center q-pr-xs text-weight-bold" style="font-size: 16px; text-transform: capitalize">
+                {{ characterPred.label }}
+              </div>
               <div class="col">
                 <q-linear-progress size="50px" :value="characterPred.prob" color="#f78f3f">
                   <div class="absolute-full flex flex-center">
@@ -117,15 +119,7 @@ import { computed } from "@vue/reactivity";
 
 const $q = useQuasar();
 
-const predictionResults = ref([
-  {
-    is_marvel_character_prob: "52.17",
-    marvel_character_probs: [
-      { label: "Thanos", prob: 0.8 },
-      { label: "Batman", prob: 0.2 },
-    ],
-  },
-]);
+const predictionResults = ref([]);
 /** -----
  * Manage Base64 encoded versions of our uploaded file(s)
  */
@@ -160,6 +154,7 @@ const fileAdded = async (files) => {
 };
 const fileRemoved = async (files) => {
   encodedFiles.value = encodedFiles.value.filter((item) => files.includes(item));
+  if (encodedFiles.value.length == 0) predictionResults.value = [];
 };
 
 /** -----
@@ -194,6 +189,8 @@ async function takePicture() {
 const predict = async () => {
   predictionResults.value = [];
 
+  $q.loading.show();
+
   for (const file of encodedFiles.value) {
     try {
       const formData = { data: [file] };
@@ -207,23 +204,23 @@ const predict = async () => {
 
       // step 2: if marvel character probability >- .5, then see makeup of top 3 characters
       if (parseFloat(itemResults.is_marvel_character_prob) >= 50) {
-        // const { data: res } = await axios.post(
-        //   "https://hf.space/embed/wgpubs/fastai_2022_session1_is_marvel_character/+/api/predict/",
-        //   formData
-        // );
+        const { data: res } = await axios.post(
+          "https://notebookse.jarvislabs.ai/jY5fsv-S9jKoQQrgd1dsoJuCDt6pTg6ZjBpNK9afxLIGInQv4OlHVuTMHqOPh2LU/api/predict/",
+          formData
+        );
 
-        itemResults["marvel_character_probs"] = [
-          { label: "Thanos", prob: 0.8 },
-          { label: "Batman", prob: 0.2 },
-        ];
+        for (const pred of res["data"][0]["confidences"]) {
+          itemResults["marvel_character_probs"].push({ label: pred["label"], prob: pred["confidence"] });
+        }
+
+        console.log(itemResults);
+        predictionResults.value.push(itemResults);
       }
-
-      console.log(itemResults);
-      predictionResults.value.push(itemResults);
     } catch (err) {
       $q.notify({ type: "negative", message: err.message || "Could not get prediction" });
     }
   }
+  $q.loading.hide();
 };
 </script>
 

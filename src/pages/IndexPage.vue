@@ -1,6 +1,14 @@
 <template>
   <q-page class="flex justify-center items-start">
     <div class="q-pt-md">
+      <div class="row">
+        <div class="col-12 text-center">
+          <span class="text-weight-bold"
+            >Upload a picture of yourself, spouse, child, pet, or whatever, and we'll try to predict their "Marvel" makeup.</span
+          ><br />
+          Note: Images are only used for predictions (nothing uploaded is stored)
+        </div>
+      </div>
       <!-- uploader -->
       <div class="row">
         <q-uploader
@@ -101,6 +109,9 @@
                 </q-linear-progress>
               </div>
             </div>
+          </div>
+          <div v-else class="col-12 q-pt-md">
+            <div class="text-h5 text-center">Sorry, but it doesn't appear you have any Marvel in your genes.</div>
           </div>
         </div>
       </div>
